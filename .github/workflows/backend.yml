@@ -1,0 +1,44 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and Test Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build -t your-backend-image:latest ./backend
+
+      - name: Run Tests
+        run: |
+          docker run your-backend-image:latest go test -v ./...
+
+  deploy:
+    name: Deploy Backend to AWS
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # specify your region
+
+      - name: Deploy using Docker Compose
+        run: |
+          ssh -i ~/.ssh/aws_key.pem ec2-user@your-ec2-instance-ip-address << EOF
+          cd /path/to/your/backend/app
+          docker-compose down
+          docker-compose up -d --build
+          EOF
