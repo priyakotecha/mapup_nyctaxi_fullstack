@@ -10,11 +10,14 @@ import (
 )
 
 type DBConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DBName   string
+	host             string
+	port             int
+	user             string
+	password         string
+	dbName           string
+	redisURL         string
+	paraquetURL      string
+	paraquetFilePath string
 }
 
 var dbConfig *DBConfig
@@ -34,11 +37,14 @@ func LoadConfig() {
 	}
 
 	dbConfig = &DBConfig{
-		Host:     os.Getenv("DB_HOST"),
-		Port:     port,
-		User:     os.Getenv("DB_USER"),
-		Password: os.Getenv("DB_PASSWORD"),
-		DBName:   os.Getenv("DB_NAME"),
+		host:             os.Getenv("DB_host"),
+		port:             port,
+		user:             os.Getenv("DB_USER"),
+		password:         os.Getenv("DB_PASSWORD"),
+		dbName:           os.Getenv("DB_NAME"),
+		redisURL:         os.Getenv("REDIS_URL"),
+		paraquetURL:      os.Getenv("NYC_TRIP_DATA_PARAQUET_FILE_URL"),
+		paraquetFilePath: "/data/trip_data",
 	}
 }
 
@@ -54,5 +60,11 @@ func GetDBConfig() *DBConfig {
 func GetPostgresConnectionString() string {
 	cfg := GetDBConfig()
 	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName)
+		cfg.host, cfg.port, cfg.user, cfg.password, cfg.dbName)
+
+}
+
+func GetParaquetFileURLAndPath() (string, string) {
+	cfg := GetDBConfig()
+	return cfg.paraquetURL, cfg.paraquetFilePath
 }
